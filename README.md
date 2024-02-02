@@ -1,8 +1,6 @@
 # Real3D-Portrait: One-shot Realistic 3D Talking Portrait Synthesis
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-%3CCOLOR%3E.svg)](https://arxiv.org/abs/2401.08503)| [![GitHub Stars](https://img.shields.io/github/stars/yerfor/Real3DPortrait
-)](https://github.com/yerfor/Real3DPortrait) | [![downloads](https://img.shields.io/github/downloads/yerfor/Real3DPortrait/total.svg)](https://github.com/yerfor/Real3DPortrait/releases) | ![visitors](https://visitor-badge.glitch.me/badge?page_id=yerfor/Real3DPortrait)
-
-[中文文档](./README-zh.md)
+)](https://github.com/yerfor/Real3DPortrait) | [中文文档](./README-zh.md)
 
 This is the official repo of Real3D-Portrait with Pytorch implementation，for one-shot and high video reality talking portrait synthesis. You can visit our [Demo Page](https://real3dportrait.github.io/) for watching demo videos, and read our [Paper](https://arxiv.org/pdf/2401.08503.pdf) for technical details.
 
