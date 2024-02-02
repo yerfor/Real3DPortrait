@@ -7,7 +7,7 @@
 
 
 # 1. 安装CUDA
-我们使用了CUDA extensions [torch-ngp](https://github.com/ashawkey/torch-ngp)，建议手动从[官方](https://developer.nvidia.com/cuda-toolkit)渠道安装CUDA。我们推荐安装CUDA `11.7`，其他CUDA版本（例如`10.2`）也可能有效。 请确保你的CUDA path(一般是 `/usr/local/cuda`) 指向了你需要的CUDA版本（例如 `/usr/local/cuda-11.7`）. 需要注意的是，我们目前不支持CUDA 12或者更高版本。
+我们推荐安装CUDA `11.7`，其他CUDA版本（例如`10.2`、`12.x`）也可能有效。 
 
 # 2. 安装Python依赖
 ```
@@ -17,7 +17,7 @@ conda create -n real3dportrait python=3.9
 conda activate real3dportrait
 conda install conda-forge::ffmpeg # ffmpeg with libx264 codec to turn images to video
 
-# 我们推荐安装torch2.0.1+cuda11.7. 已经发现 torch=2.1+cuda12.1 会导致 torch-ngp 错误
+# 我们推荐安装torch2.0.1+cuda11.7. 
 conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
 
 # 从源代码安装，需要比较长的时间 (如果遇到各种time-out问题，建议使用代理)

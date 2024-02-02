@@ -7,7 +7,7 @@ The following installation process is verified in A100/V100 + CUDA11.7.
 
 
 # 1. Install CUDA
-We use CUDA extensions from [torch-ngp](https://github.com/ashawkey/torch-ngp), you may need to manually install CUDA from the [offcial page](https://developer.nvidia.com/cuda-toolkit). We recommend to install CUDA `11.7` (which is verified in various types of GPUs), but other CUDA versions (such as `10.2`) may also work well. Make sure your cuda path (typically `/usr/local/cuda`) points to a installed `/usr/local/cuda-11.7`. Note that we cannot support CUDA 12.* currently. 
+ We recommend to install CUDA `11.7` (which is verified in various types of GPUs), but other CUDA versions (such as `10.2`, `12.x`) may also work well. 
 
 # 2. Install Python Packages
 ```
@@ -17,7 +17,7 @@ conda create -n real3dportrait python=3.9
 conda activate real3dportrait
 conda install conda-forge::ffmpeg # ffmpeg with libx264 codec to turn images to video
 
-### We recommend torch2.0.1+cuda11.7. We found torch=2.1+cuda12.1 leads to erors in torch-ngp
+### We recommend torch2.0.1+cuda11.7. 
 conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
 
 # Build from source, it may take a long time (Proxy is recommended if encountering the time-out problem)
