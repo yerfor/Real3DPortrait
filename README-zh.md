@@ -1,4 +1,4 @@
-# Real3D-Portrait: One-shot Realistic 3D Talking Portrait Synthesis
+# Real3D-Portrait: One-shot Realistic 3D Talking Portrait Synthesis | ICLR 2024 Spotlight
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-%3CCOLOR%3E.svg)](https://arxiv.org/abs/2401.08503)| [![GitHub Stars](https://img.shields.io/github/stars/yerfor/Real3DPortrait
 )](https://github.com/yerfor/Real3DPortrait) | [English Readme](./README.md)
 
