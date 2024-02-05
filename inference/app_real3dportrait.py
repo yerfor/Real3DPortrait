@@ -18,7 +18,6 @@ class Inferer(GeneFace2Infer):
             'out_mode',
             'map_to_init_pose',
             'hold_eye_opened',
-            'head_torso_threshold',
             'a2m_ckpt',
             'head_ckpt',
             'torso_ckpt',
@@ -64,9 +63,6 @@ class Inferer(GeneFace2Infer):
             inp['seed'] = 42
             
             print(f"infer inputs : {inp}")
-            if self.secc2video_hparams['htbsr_head_threshold'] != inp['head_torso_threshold']:  
-                print("Changes of head_torso_threshold detected, reloading model")
-                reload_flag = True
                 
             try:
                 if reload_flag:
@@ -170,9 +166,8 @@ def real3dportrait_demo(
                             temperature = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="temperature",  value=0.2, info='audio to secc temperature',)
                             mouth_amp = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="mouth amplitude",  value=0.45, info='higher -> mouth will open wider, default to be 0.4',)
                             out_mode = gr.Radio(['final', 'concat_debug'], value='final', label='output layout', info="final: only final output ; concat_debug: final output concated with internel features") 
-                            map_to_init_pose = gr.Checkbox(label="Whether to map pose of first frame to initial pose")
+                            map_to_init_pose = gr.Checkbox(label="Whether to map pose of first frame to initial pose", value=True)
                             hold_eye_opened  = gr.Checkbox(label="Whether to maintain eyes always open")
-                            head_torso_threshold = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="head torso threshold",  value=0.7, info='make it higher if you find ghosting around hair of output, default to be 0.7',)
                                 
                             submit = gr.Button('Generate', elem_id="generate", variant='primary')
                         
@@ -208,7 +203,6 @@ def real3dportrait_demo(
                         out_mode,
                         map_to_init_pose,
                         hold_eye_opened,
-                        head_torso_threshold,
                         audio2secc_dir,
                         head_model_dir,
                         torso_model_dir,
