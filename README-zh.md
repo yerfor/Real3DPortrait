@@ -38,7 +38,7 @@ deep_3drecon/BFM/
 下载完成后，放置全部的文件到`checkpoints`里并解压，文件结构如下：
 ```
 checkpoints/
-├── 240126_real3dportrait_orig
+├── 240210_real3dportrait_orig
 │   ├── audio2secc_vae
 │   │   ├── config.yaml
 │   │   └── model_ckpt_steps_400000.ckpt

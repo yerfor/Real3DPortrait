@@ -39,7 +39,7 @@ Download Pre-trained Real3D-Portrait：[Google Drive](https://drive.google.com/d
 Put the zip files in `checkpoints` and unzip them, the file structure will be like this:
 ```
 checkpoints/
-├── 240126_real3dportrait_orig
+├── 240210_real3dportrait_orig
 │   ├── audio2secc_vae
 │   │   ├── config.yaml
 │   │   └── model_ckpt_steps_400000.ckpt

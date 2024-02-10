@@ -192,6 +192,10 @@ class GeneFace2Infer:
         :param inp: {'audio_source_name': (str)}
         :return: a dict that contains the condition feature of NeRF
         """
+        cropped_name = 'temp/cropped_src_img_512.png'
+        crop_img_on_face_area_percent(inp['src_img'], cropped_name, min_face_area_percent=inp['min_face_area_percent'])
+        inp['src_img'] = cropped_name
+
         sample = {}
         # Process Driving Motion
         if inp['drv_audio_name'][-4:] in ['.wav', '.mp3']:
@@ -591,10 +595,10 @@ if __name__ == '__main__':
     import argparse, glob, tqdm
     parser = argparse.ArgumentParser()
     # parser.add_argument("--a2m_ckpt", default='checkpoints/240112_audio2secc/icl_audio2secc_vox2_cmlr') # checkpoints/0727_audio2secc/audio2secc_withlm2d100_randomframe
-    parser.add_argument("--a2m_ckpt", default='checkpoints/240126_real3dportrait_orig/audio2secc_vae') # checkpoints/0727_audio2secc/audio2secc_withlm2d100_randomframe
-    parser.add_argument("--head_ckpt", default='checkpoints/240126_improve_i2p/secc2plane_rgb_alpha') # checkpoints/0729_th1kh/secc_img2plane checkpoints/0720_img2planes/secc_img2plane_two_stage
+    parser.add_argument("--a2m_ckpt", default='checkpoints/240210_real3dportrait_orig/audio2secc_vae') # checkpoints/0727_audio2secc/audio2secc_withlm2d100_randomframe
+    parser.add_argument("--head_ckpt", default='checkpoints/240210_improve_i2p/secc2plane_rgb_alpha') # checkpoints/0729_th1kh/secc_img2plane checkpoints/0720_img2planes/secc_img2plane_two_stage
     # parser.add_argument("--head_ckpt", default='checkpoints/240205_robust_secc2plane/secc2plane_rgb_alpha_blink0.1_pertube0.3_onFullDataset') # checkpoints/0729_th1kh/secc_img2plane checkpoints/0720_img2planes/secc_img2plane_two_stage
-    # parser.add_argument("--torso_ckpt", default='checkpoints/240126_real3dportrait_orig/secc2plane_torso_orig') 
+    # parser.add_argument("--torso_ckpt", default='checkpoints/240210_real3dportrait_orig/secc2plane_torso_orig') 
     # parser.add_argument("--torso_ckpt", default='checkpoints/240209_robust_secc2plane_torso/secc2plane_torso_orig_fuseV1_MulMaskFalse') 
     parser.add_argument("--torso_ckpt", default='') 
     # parser.add_argument("--torso_ckpt", default='checkpoints/240209_robust_secc2plane_torso/secc2plane_torso_orig_fuseV2_MulMaskTrue') 
@@ -620,10 +624,6 @@ if __name__ == '__main__':
     
 
     args = parser.parse_args()
-
-    cropped_name = 'temp/cropped_src_img_512.png'
-    crop_img_on_face_area_percent(args.src_img, cropped_name, min_face_area_percent=args.min_face_area_percent)
-    args.src_img = cropped_name
 
     inp = {
             'a2m_ckpt': args.a2m_ckpt,

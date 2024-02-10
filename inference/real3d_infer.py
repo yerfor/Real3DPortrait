@@ -189,6 +189,10 @@ class GeneFace2Infer:
         :param inp: {'audio_source_name': (str)}
         :return: a dict that contains the condition feature of NeRF
         """
+        cropped_name = 'temp/cropped_src_img_512.png'
+        crop_img_on_face_area_percent(inp['src_image_name'], cropped_name, min_face_area_percent=inp['min_face_area_percent'])
+        inp['src_image_name'] = cropped_name
+
         sample = {}
         # Process Driving Motion
         if inp['drv_audio_name'][-4:] in ['.wav', '.mp3']:
@@ -569,10 +573,6 @@ if __name__ == '__main__':
     parser.add_argument("--min_face_area_percent", default=0.2, type=float) # scale of predicted mouth, enabled in audio-driven
 
     args = parser.parse_args()
-
-    cropped_name = 'temp/cropped_src_img_512.png'
-    crop_img_on_face_area_percent(args.src_img, cropped_name, min_face_area_percent=args.min_face_area_percent)
-    args.src_img = cropped_name
 
     inp = {
             'a2m_ckpt': args.a2m_ckpt,

@@ -21,6 +21,7 @@ class Inferer(GeneFace2Infer):
             'a2m_ckpt',
             'head_ckpt',
             'torso_ckpt',
+            'min_face_area_percent',
         ]
         inp = {}
         out_name = None
@@ -134,7 +135,7 @@ def real3dportrait_demo(
             <div align='center'> <h2> Real3D-Portrait: One-shot Realistic 3D Talking Portrait Synthesis (ICLR 2024 Spotlight) </span> </h2> \
             <a style='font-size:18px;color: #a0a0a0' href='https://arxiv.org/pdf/2401.08503.pdf'>Arxiv</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \
             <a style='font-size:18px;color: #a0a0a0' href='https://real3dportrait.github.io/'>Homepage</a>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \
-            <a style='font-size:18px;color: #a0a0a0' href='https://baidu.com'> Github </div>")
+            <a style='font-size:18px;color: #a0a0a0' href='https://github.com/yerfor/Real3DPortrait/'> Github </div>")
         
         sources = None
         with gr.Row():
@@ -163,6 +164,7 @@ def real3dportrait_demo(
                         with gr.Column(variant='panel'):
 
                             blink_mode = gr.Radio(['none', 'period'], value='period', label='blink mode', info="whether to blink periodly") #        
+                            min_face_area_percent = gr.Slider(minimum=0.15, maximum=1.0, step=0.01, label="min_face_area_percent",  value=0.2, info='The minimum face area percent in the output frame, to prevent bad cases caused by a too small face.',)
                             temperature = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="temperature",  value=0.2, info='audio to secc temperature',)
                             mouth_amp = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="mouth amplitude",  value=0.45, info='higher -> mouth will open wider, default to be 0.4',)
                             out_mode = gr.Radio(['final', 'concat_debug'], value='concat_debug', label='output layout', info="final: only final output ; concat_debug: final output concated with internel features") 
@@ -206,6 +208,7 @@ def real3dportrait_demo(
                         audio2secc_dir,
                         head_model_dir,
                         torso_model_dir,
+                        min_face_area_percent,
                     ], 
                     outputs=[
                         gen_video,
@@ -221,9 +224,9 @@ def real3dportrait_demo(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--a2m_ckpt", type=str, default='checkpoints/240126_real3dportrait_orig/audio2secc_vae/model_ckpt_steps_400000.ckpt')
+    parser.add_argument("--a2m_ckpt", type=str, default='checkpoints/240210_real3dportrait_orig/audio2secc_vae/model_ckpt_steps_400000.ckpt')
     parser.add_argument("--head_ckpt", type=str, default='')
-    parser.add_argument("--torso_ckpt", type=str, default='checkpoints/240126_real3dportrait_orig/secc2plane_torso_orig/model_ckpt_steps_100000.ckpt') 
+    parser.add_argument("--torso_ckpt", type=str, default='checkpoints/240210_real3dportrait_orig/secc2plane_torso_orig/model_ckpt_steps_100000.ckpt') 
     parser.add_argument("--port", type=int, default=None) 
     args = parser.parse_args()
     demo = real3dportrait_demo(
