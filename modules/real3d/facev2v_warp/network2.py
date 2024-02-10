@@ -21,14 +21,14 @@ class AppearanceFeatureExtractor(nn.Module):
     # [N,256,64,64]
     # [N,512,64,64]
     # [N,32,16,64,64]
-    def __init__(self, model_scale='standard'):
+    def __init__(self, in_dim=3, model_scale='standard', lora_args=None):
         super().__init__()
         use_weight_norm = False
         down_seq = [64, 128, 256]
         n_res = 6
         C = 32
         D = 16
-        self.in_conv = ConvBlock2D("CNA", 3, down_seq[0], 7, 1, 3, use_weight_norm)
+        self.in_conv = ConvBlock2D("CNA", in_dim, down_seq[0], 7, 1, 3, use_weight_norm)
         self.down = nn.Sequential(*[DownBlock2D(down_seq[i], down_seq[i + 1], use_weight_norm) for i in range(len(down_seq) - 1)])
         self.mid_conv = nn.Conv2d(down_seq[-1], C * D, 1, 1, 0)
         self.res = nn.Sequential(*[ResBlock3D(C, use_weight_norm) for _ in range(n_res)])

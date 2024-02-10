@@ -200,7 +200,11 @@ class WarpBasedTorsoModelMediaPipe(nn.Module):
     def __init__(self, model_scale='small'):
         super().__init__()
         self.hparams = copy.deepcopy(hparams)
-        self.appearance_extractor = AppearanceFeatureExtractor(model_scale)
+        if hparams.get("torso_inp_mode", "rgb") == 'rgb_alpha':
+            torso_in_dim = 5
+        else:
+            torso_in_dim = 3
+        self.appearance_extractor = AppearanceFeatureExtractor(in_dim=torso_in_dim, model_scale=model_scale)
         self.motion_field_estimator = MotionFieldEstimator(model_scale, input_channels=32+2, num_keypoints=self.hparams['torso_kp_num']) # 32 channel appearance channel, and 3 channel for segmap
         # self.motion_field_estimator = MotionFieldEstimator(model_scale, input_channels=32+2, num_keypoints=9) # 32 channel appearance channel, and 3 channel for segmap
         self.deform_based_generator = Generator()
@@ -219,6 +223,10 @@ class WarpBasedTorsoModelMediaPipe(nn.Module):
         """
         kp_s, kp_d, [b, 68, 3], within the range of [-1,1]
         """
+        if hparams.get("torso_inp_mode", "rgb") == 'rgb_alpha':
+            torso_segmap = torch.nn.functional.interpolate(segmap[:,[2,4]].float(), size=(torso_src_img.shape[-2],torso_src_img.shape[-1]), mode='bilinear', align_corners=False, antialias=False) # see tasks/eg3ds/loss_utils/segment_loss/mp_segmenter.py for the segmap convention
+            torso_src_img = torch.cat([torso_src_img, torso_segmap], dim=1)
+
         torso_appearance_feats = self.appearance_extractor(torso_src_img) # [B, C, D, H, W]
         torso_segmap = torch.nn.functional.interpolate(segmap[:,[2,4]].float(), size=(64,64), mode='bilinear', align_corners=False, antialias=False) # see tasks/eg3ds/loss_utils/segment_loss/mp_segmenter.py for the segmap convention
         torso_mask = torso_segmap.sum(dim=1).unsqueeze(1) # [b, 1, ,h, w]

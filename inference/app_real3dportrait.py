@@ -165,7 +165,7 @@ def real3dportrait_demo(
                             blink_mode = gr.Radio(['none', 'period'], value='period', label='blink mode', info="whether to blink periodly") #        
                             temperature = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="temperature",  value=0.2, info='audio to secc temperature',)
                             mouth_amp = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="mouth amplitude",  value=0.45, info='higher -> mouth will open wider, default to be 0.4',)
-                            out_mode = gr.Radio(['final', 'concat_debug'], value='final', label='output layout', info="final: only final output ; concat_debug: final output concated with internel features") 
+                            out_mode = gr.Radio(['final', 'concat_debug'], value='concat_debug', label='output layout', info="final: only final output ; concat_debug: final output concated with internel features") 
                             map_to_init_pose = gr.Checkbox(label="Whether to map pose of first frame to initial pose", value=True)
                             hold_eye_opened  = gr.Checkbox(label="Whether to maintain eyes always open")
                                 

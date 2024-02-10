@@ -10,6 +10,7 @@ import importlib
 import tqdm
 import copy
 import cv2
+import math
 
 # common utils
 from utils.commons.hparams import hparams, set_hparams
@@ -20,18 +21,18 @@ from deep_3drecon.deep_3drecon_models.bfm import ParametricFaceModel
 from data_util.face3d_helper import Face3DHelper
 from data_gen.utils.process_image.fit_3dmm_landmark import fit_3dmm_for_a_image
 from data_gen.utils.process_video.fit_3dmm_landmark import fit_3dmm_for_a_video
+from data_gen.utils.process_image.extract_lm2d import extract_lms_mediapipe_job
+from data_gen.utils.process_image.fit_3dmm_landmark import index_lm68_from_lm468
 from deep_3drecon.secc_renderer import SECC_Renderer
 from data_gen.eg3d.convert_to_eg3d_convention import get_eg3d_convention_camera_pose_intrinsic
-from data_gen.utils.process_image.extract_lm2d import extract_lms_mediapipe_job
-
 # Face Parsing 
 from data_gen.utils.mp_feature_extractors.mp_segmenter import MediapipeSegmenter
 from data_gen.utils.process_video.extract_segment_imgs import inpaint_torso_job, extract_background
 # other inference utils
-from inference.infer_utils import mirror_index, load_img_to_512_hwc_array, load_img_to_normalized_512_bchw_tensor
-from inference.infer_utils import smooth_camera_sequence, smooth_features_xd
-from inference.edit_secc import blink_eye_for_secc
-
+from inference.os_avatar.infer_utils import mirror_index, load_img_to_512_hwc_array, load_img_to_normalized_512_bchw_tensor
+from inference.os_avatar.infer_utils import smooth_camera_sequence, smooth_features_xd
+from inference.os_avatar.edit_secc import blink_eye_for_secc, hold_eye_opened_for_secc
+from inference.os_avatar.knn_camera_selector import KNearestCameraSelector
 
 def read_first_frame_from_a_video(vid_name):
     frames = []
@@ -59,6 +60,7 @@ def analyze_weights_img(gen_output):
     img_raw_005_to_10 = img_raw.clone()
     img_raw_005_to_10[~mask_005_to_10] = -1
     ts.save([img_raw_005_to_03[0], img_raw_005_to_05[0], img_raw_005_to_07[0], img_raw_005_to_09[0], img_raw_005_to_10[0]])
+
 
 def cal_face_area_percent(img_name):
     img = cv2.resize(cv2.imread(img_name)[:,:,::-1], (512,512))
@@ -110,7 +112,6 @@ class GeneFace2Infer:
     def __init__(self, audio2secc_dir, head_model_dir, torso_model_dir, device=None, inp=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.device = device
         self.audio2secc_model = self.load_audio2secc(audio2secc_dir)
         self.secc2video_model = self.load_secc2video(head_model_dir, torso_model_dir, inp)
         self.audio2secc_model.to(device).eval()
@@ -119,6 +120,7 @@ class GeneFace2Infer:
         self.secc_renderer = SECC_Renderer(512)
         self.face3d_helper = Face3DHelper(use_gpu=True, keypoint_mode='lm68')
         self.mp_face3d_helper = Face3DHelper(use_gpu=True, keypoint_mode='mediapipe')
+        self.camera_selector = KNearestCameraSelector()
 
     def load_audio2secc(self, audio2secc_dir):
         config_name = f"{audio2secc_dir}/config.yaml" if not audio2secc_dir.endswith(".ckpt") else f"{os.path.dirname(audio2secc_dir)}/config.yaml"
@@ -126,6 +128,7 @@ class GeneFace2Infer:
         self.audio2secc_dir = audio2secc_dir
         self.audio2secc_hparams = copy.deepcopy(hparams)
         from modules.audio2motion.vae import VAEModel, PitchContourVAEModel
+        from modules.audio2motion.cfm.icl_audio2motion_model import InContextAudio2MotionModel
         if self.audio2secc_hparams['audio_type'] == 'hubert':
             audio_in_dim = 1024
         elif self.audio2secc_hparams['audio_type'] == 'mfcc':
@@ -156,13 +159,13 @@ class GeneFace2Infer:
             if inp.get('head_torso_threshold', None) is not None:
                 hparams['htbsr_head_threshold'] = inp['head_torso_threshold']
             self.secc2video_hparams = copy.deepcopy(hparams)
-            from modules.real3d.secc_img2plane_torso import OSAvatarSECC_Img2plane_Torso
+            from modules.os_avatar.secc_img2plane_torso import OSAvatarSECC_Img2plane_Torso
             model = OSAvatarSECC_Img2plane_Torso()
-            load_ckpt(model, f"{torso_model_dir}", model_name='model', strict=True)
+            load_ckpt(model, f"{torso_model_dir}", model_name='model', strict=False)
             if head_model_dir != '':
                 print("| Warning: Assigned --torso_ckpt which also contains head, but --head_ckpt is also assigned, skipping the --head_ckpt.")
         else:
-            from modules.real3d.secc_img2plane_torso import OSAvatarSECC_Img2plane
+            from modules.os_avatar.secc_img2plane_torso import OSAvatarSECC_Img2plane
             if head_model_dir.endswith(".ckpt"):
                 set_hparams(f"{os.path.dirname(head_model_dir)}/config.yaml", print_hparams=False)
             else:
@@ -171,7 +174,7 @@ class GeneFace2Infer:
                 hparams['htbsr_head_threshold'] = inp['head_torso_threshold']
             self.secc2video_hparams = copy.deepcopy(hparams)
             model = OSAvatarSECC_Img2plane()
-            load_ckpt(model, f"{head_model_dir}", model_name='model', strict=True)
+            load_ckpt(model, f"{head_model_dir}", model_name='model', strict=False)
         return model
 
     def infer_once(self, inp):
@@ -227,6 +230,8 @@ class GeneFace2Infer:
             drv_motion_coeff_dict = convert_to_tensor(drv_motion_coeff_dict)
             t_x = drv_motion_coeff_dict['exp'].shape[0] * 2
             self.drv_motion_coeff_dict = drv_motion_coeff_dict
+        else:
+            raise ValueError()
 
         # Face Parsing
         image_name = inp['src_image_name']
@@ -244,7 +249,7 @@ class GeneFace2Infer:
         sample['ref_torso_img'] = ((torch.tensor(inpaint_torso_img) - 127.5)/127.5).float().unsqueeze(0).permute(0, 3, 1,2).cuda() # [b,c,h,w]
         
         if inp['bg_image_name'] == '':
-            bg_img = extract_background([img], [segmap], 'knn')
+            bg_img = extract_background([img], [segmap], 'lama')
         else:
             bg_img = cv2.imread(inp['bg_image_name'])
             bg_img = cv2.cvtColor(bg_img, cv2.COLOR_BGR2RGB)
@@ -267,7 +272,22 @@ class GeneFace2Infer:
 
         # get camera pose file
         # random.seed(time.time())
-        inp['drv_pose_name'] = inp['drv_pose_name']
+        if inp['drv_pose_name'] in ['nearest', 'topk']:
+            camera_ret = get_eg3d_convention_camera_pose_intrinsic({'euler': torch.tensor(coeff_dict['euler']).reshape([1,3]), 'trans': torch.tensor(coeff_dict['trans']).reshape([1,3])})
+            c2w, intrinsics = camera_ret['c2w'], camera_ret['intrinsics']
+            camera = np.concatenate([c2w.reshape([1,16]), intrinsics.reshape([1,9])], axis=-1)
+            coeff_names, distance_matrix = self.camera_selector.find_k_nearest(camera, k=100)
+            coeff_names = coeff_names[0] # squeeze
+            if inp['drv_pose_name'] == 'nearest':
+                inp['drv_pose_name'] = coeff_names[0]
+            else:
+                inp['drv_pose_name'] = random.choice(coeff_names)
+            # inp['drv_pose_name'] = coeff_names[0]
+        elif inp['drv_pose_name'] == 'random':
+            inp['drv_pose_name'] = self.camera_selector.random_select()
+        else:
+            inp['drv_pose_name'] = inp['drv_pose_name']
+
         print(f"| To extract pose from {inp['drv_pose_name']}")
 
         # extract camera pose 
@@ -355,6 +375,18 @@ class GeneFace2Infer:
     @torch.no_grad()
     def forward_audio2secc(self, batch, inp=None):
         if inp['drv_audio_name'][-4:] in ['.wav', '.mp3']:
+            from inference.os_avatar.infer_utils import extract_audio_motion_from_ref_video
+            if self.use_icl_audio2motion:
+                self.audio2secc_model.empty_context() # make this function reloadable
+            if self.use_icl_audio2motion and inp['drv_talking_style_name'].endswith(".mp4"):
+                ref_exp, ref_hubert, ref_f0 = extract_audio_motion_from_ref_video(inp['drv_talking_style_name'])
+                self.audio2secc_model.add_sample_to_context(ref_exp, ref_hubert, ref_f0)
+            elif self.use_icl_audio2motion and inp['drv_talking_style_name'].endswith((".png",'.jpg')):
+                style_coeff_dict = fit_3dmm_for_a_image(inp['drv_talking_style_name'])
+                ref_exp = torch.tensor(style_coeff_dict['exp']).reshape([1,1,64]).cuda()
+                self.audio2secc_model.add_sample_to_context(ref_exp.repeat([1, 100, 1]), hubert=None, f0=None)
+            else:
+                print("| WARNING: Not assigned reference talking style, passing...")
             # audio-to-exp
             ret = {}
             pred = self.audio2secc_model.forward(batch, ret=ret,train=False, temperature=inp['temperature'],)
@@ -402,6 +434,10 @@ class GeneFace2Infer:
         if inp['blink_mode'] == 'period':
             period = 5 # second
 
+            if inp['hold_eye_opened'] == 'True':
+                for i in tqdm.trange(len(drv_secc_colors),desc="opening eye for secc"):
+                    batch['drv_secc'][i] = hold_eye_opened_for_secc(batch['drv_secc'][i])
+
             for i in tqdm.trange(len(drv_secc_colors),desc="blinking secc"):
                 if i % (25*period) == 0:
                     blink_dur_frames = random.randint(8, 12)
@@ -447,19 +483,22 @@ class GeneFace2Infer:
         img_lst = []
         depth_img_lst = []
         with torch.no_grad():
-            for i in tqdm.trange(num_frames, desc="Real3D-Portrait is rendering frames"):
-                kp_src = torch.cat([src_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(src_kps.device)],dim=-1)
-                kp_drv = torch.cat([drv_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(drv_kps.device)],dim=-1)
-                cond={'cond_cano': cano_secc_color,'cond_src': src_secc_color, 'cond_tgt': drv_secc_colors[i:i+1].cuda(),
-                        'ref_torso_img': ref_torso_img, 'bg_img': bg_img, 'segmap': segmap,
-                        'kp_s': kp_src, 'kp_d': kp_drv}
-                if i == 0:
-                    gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=True, use_cached_backbone=False)
-                else:
-                    gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=False, use_cached_backbone=True)
-                img_lst.append(gen_output['image'])
-                img_raw_lst.append(gen_output['image_raw'])
-                depth_img_lst.append(gen_output['image_depth'])
+            with torch.cuda.amp.autocast(inp['fp16']):
+                for i in tqdm.trange(num_frames, desc="Real3D-Portrait is rendering frames"):
+                    kp_src = torch.cat([src_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(src_kps.device)],dim=-1)
+                    kp_drv = torch.cat([drv_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(drv_kps.device)],dim=-1)
+                    cond={'cond_cano': cano_secc_color,'cond_src': src_secc_color, 'cond_tgt': drv_secc_colors[i:i+1].cuda(),
+                            'ref_torso_img': ref_torso_img, 'bg_img': bg_img, 'segmap': segmap,
+                            'kp_s': kp_src, 'kp_d': kp_drv,
+                            'ref_cameras': camera[i:i+1],
+                            }
+                    if i == 0:
+                        gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=True, use_cached_backbone=False)
+                    else:
+                        gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=False, use_cached_backbone=True)
+                    img_lst.append(gen_output['image'])
+                    img_raw_lst.append(gen_output['image_raw'])
+                    depth_img_lst.append(gen_output['image_depth'])
 
         # save demo video
         depth_imgs = torch.cat(depth_img_lst)
@@ -542,7 +581,7 @@ class GeneFace2Infer:
         print(f"Extracted wav file (16khz) from {audio_name} to {wav16k_name}.")
 
     def get_f0(self, wav16k_name):
-        from data_gen.utils.process_audio.extract_mel_f0 import extract_mel_from_fname, extract_f0_from_wav_and_mel
+        from data_gen.process_lrs3.process_audio_mel_f0 import extract_mel_from_fname,extract_f0_from_wav_and_mel
         wav, mel = extract_mel_from_fname(self.wav16k_name)
         f0, f0_coarse = extract_f0_from_wav_and_mel(wav, mel)
         f0 = f0.reshape([-1,1])
@@ -551,22 +590,34 @@ class GeneFace2Infer:
 if __name__ == '__main__':
     import argparse, glob, tqdm
     parser = argparse.ArgumentParser()
-    parser.add_argument("--a2m_ckpt", default='checkpoints/240210_real3dportrait_orig/audio2secc_vae', type=str) 
-    parser.add_argument("--head_ckpt", default='', type=str)
-    parser.add_argument("--torso_ckpt", default='checkpoints/240210_real3dportrait_orig/secc2plane_torso_orig', type=str) 
-    parser.add_argument("--src_img", default='data/raw/examples/Macron.png', type=str) # data/raw/examples/Macron.png
-    parser.add_argument("--bg_img", default='', type=str) # data/raw/examples/bg.png
-    parser.add_argument("--drv_aud", default='data/raw/examples/Obama_5s.wav', type=str) # data/raw/examples/Obama_5s.wav
-    parser.add_argument("--drv_pose", default='static', type=str) # data/raw/examples/May_5s.mp4
-    parser.add_argument("--blink_mode", default='none', type=str) # none | period
-    parser.add_argument("--temperature", default=0.2, type=float) # sampling temperature in audio2motion, higher -> more diverse, less accurate
-    parser.add_argument("--mouth_amp", default=0.45, type=float) # scale of predicted mouth, enabled in audio-driven
-    parser.add_argument("--head_torso_threshold", default=0.9, type=float, help="0.1~1.0, turn up this value if the hair is translucent")
-    parser.add_argument("--out_name", default='') # output filename
-    parser.add_argument("--out_mode", default='concat_debug') # final: only output talking head video; concat_debug: talking head with internel features  
-    parser.add_argument("--map_to_init_pose", default='True') # whether to map the pose of first frame to source image
-    parser.add_argument("--seed", default=None, type=int) # random seed, default None to use time.time()
+    # parser.add_argument("--a2m_ckpt", default='checkpoints/240112_audio2secc/icl_audio2secc_vox2_cmlr') # checkpoints/0727_audio2secc/audio2secc_withlm2d100_randomframe
+    parser.add_argument("--a2m_ckpt", default='checkpoints/240126_real3dportrait_orig/audio2secc_vae') # checkpoints/0727_audio2secc/audio2secc_withlm2d100_randomframe
+    parser.add_argument("--head_ckpt", default='checkpoints/240126_improve_i2p/secc2plane_rgb_alpha') # checkpoints/0729_th1kh/secc_img2plane checkpoints/0720_img2planes/secc_img2plane_two_stage
+    # parser.add_argument("--head_ckpt", default='checkpoints/240205_robust_secc2plane/secc2plane_rgb_alpha_blink0.1_pertube0.3_onFullDataset') # checkpoints/0729_th1kh/secc_img2plane checkpoints/0720_img2planes/secc_img2plane_two_stage
+    # parser.add_argument("--torso_ckpt", default='checkpoints/240126_real3dportrait_orig/secc2plane_torso_orig') 
+    # parser.add_argument("--torso_ckpt", default='checkpoints/240209_robust_secc2plane_torso/secc2plane_torso_orig_fuseV1_MulMaskFalse') 
+    parser.add_argument("--torso_ckpt", default='') 
+    # parser.add_argument("--torso_ckpt", default='checkpoints/240209_robust_secc2plane_torso/secc2plane_torso_orig_fuseV2_MulMaskTrue') 
+    # parser.add_argument("--src_img", default='data/raw/val_imgs/Macron_img.png')
+    # parser.add_argument("--src_img", default='gf2_iclr_test_data/cross_imgs/Trump.png')
+    parser.add_argument("--src_img", default='wen.png')
+    parser.add_argument("--bg_img", default='') # data/raw/val_imgs/bg3.png
+    parser.add_argument("--drv_aud", default='data/raw/val_wavs/French.wav')
+    parser.add_argument("--drv_pose", default='data/raw/videos/May_5s.mp4') # nearest | topk | random | static | vid_name
+    # parser.add_argument("--drv_pose", default='nearest') # nearest | topk | random | static | vid_name
+    parser.add_argument("--drv_style", default='') # nearest | topk | random | static | vid_name
+    parser.add_argument("--blink_mode", default='period') # none | period
+    parser.add_argument("--temperature", default=0.2, type=float) # nearest | random
+    parser.add_argument("--mouth_amp", default=0.4, type=float) # scale of predicted mouth, enabled in audio-driven
     parser.add_argument("--min_face_area_percent", default=0.2, type=float) # scale of predicted mouth, enabled in audio-driven
+    parser.add_argument("--head_torso_threshold", default=None, type=float, help="0.1~1.0, 如果发现头发有半透明的现象,调小该值,以将小weights的头发直接clamp到weights=1.0; 如果发现头外部有荧光色的虚影,调小这个值. 对不同超参的Nerf也是case-to-case")
+    parser.add_argument("--out_name", default='') # nearest | random
+    parser.add_argument("--out_mode", default='concat_debug') # concat_debug | debug | final 
+    parser.add_argument("--hold_eye_opened", default='False') # concat_debug | debug | final 
+    parser.add_argument("--map_to_init_pose", default='True') # concat_debug | debug | final 
+    parser.add_argument("--seed", default=None, type=int) # random seed, default None to use time.time()
+    parser.add_argument("--fp16", action='store_true')
+    
 
     args = parser.parse_args()
 
@@ -582,14 +633,17 @@ if __name__ == '__main__':
             'bg_image_name': args.bg_img,
             'drv_audio_name': args.drv_aud,
             'drv_pose_name': args.drv_pose,
+            'drv_talking_style_name': args.drv_style,
             'blink_mode': args.blink_mode,
             'temperature': args.temperature,
             'mouth_amp': args.mouth_amp,
             'out_name': args.out_name,
             'out_mode': args.out_mode,
             'map_to_init_pose': args.map_to_init_pose,
+            'hold_eye_opened': args.hold_eye_opened,
             'head_torso_threshold': args.head_torso_threshold,
             'seed': args.seed,
+            'fp16': args.fp16, # 目前的ckpt使用fp16会导致nan，发现是因为i2p模型的layernorm产生了单个nan导致的，在训练阶段也采用fp16可能可以解决这个问题
             }
 
     GeneFace2Infer.example_run(inp)

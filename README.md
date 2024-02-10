@@ -10,8 +10,6 @@ This is the official repo of Real3D-Portrait with Pytorch implementation, for on
     <br>
 </p>
 
-# :construction: The current checkpoint seems buggy
-The currently provided checkpoint is trained with a recently processed dataset constructed by 50-hours-long high-image-quality videos. However, we found it leads to robust issues when given low-image-quality source image or source images with a small head segment. We are handling this issue. Thanks for your patience.
 
 # Quick Start!
 ## Environment Installation
