@@ -10,6 +10,7 @@ import importlib
 import tqdm
 import copy
 import cv2
+import math
 
 # common utils
 from utils.commons.hparams import hparams, set_hparams
@@ -189,9 +190,9 @@ class GeneFace2Infer:
         :param inp: {'audio_source_name': (str)}
         :return: a dict that contains the condition feature of NeRF
         """
-        cropped_name = 'temp/cropped_src_img_512.png'
-        crop_img_on_face_area_percent(inp['src_image_name'], cropped_name, min_face_area_percent=inp['min_face_area_percent'])
-        inp['src_image_name'] = cropped_name
+        tmp_img_name = 'infer_out/tmp/cropped_src_img.png'
+        crop_img_on_face_area_percent(inp['src_image_name'], tmp_img_name, min_face_area_percent=inp['min_face_area_percent'])
+        inp['src_image_name'] = tmp_img_name
 
         sample = {}
         # Process Driving Motion
@@ -244,6 +245,7 @@ class GeneFace2Infer:
         sample['segmap'] = torch.tensor(segmap).float().unsqueeze(0).cuda()
         head_img = self.seg_model._seg_out_img_with_segmap(img, segmap, mode='head')[0]
         sample['ref_head_img'] = ((torch.tensor(head_img) - 127.5)/127.5).float().unsqueeze(0).permute(0, 3, 1,2).cuda() # [b,c,h,w]
+        ts.save(sample['ref_head_img'])
         inpaint_torso_img, _, _, _ = inpaint_torso_job(img, segmap)
         sample['ref_torso_img'] = ((torch.tensor(inpaint_torso_img) - 127.5)/127.5).float().unsqueeze(0).permute(0, 3, 1,2).cuda() # [b,c,h,w]
         
@@ -297,7 +299,8 @@ class GeneFace2Infer:
         sample['trans'][:, -1] = sample['trans'][0:1, -1].repeat([sample['trans'].shape[0]])
 
         # mapping to the init pose
-        if inp.get("map_to_init_pose", 'False') == 'True':
+        print(inp)
+        if inp.get("map_to_init_pose", 'True') in ['True', True]:
             diff_euler = torch.tensor(coeff_dict['euler']).reshape([1,3]).cuda() - sample['euler'][0:1]
             sample['euler'] = sample['euler'] + diff_euler
             diff_trans = torch.tensor(coeff_dict['trans']).reshape([1,3]).cuda() - sample['trans'][0:1]
@@ -561,7 +564,7 @@ if __name__ == '__main__':
     parser.add_argument("--src_img", default='data/raw/examples/Macron.png', type=str) # data/raw/examples/Macron.png
     parser.add_argument("--bg_img", default='', type=str) # data/raw/examples/bg.png
     parser.add_argument("--drv_aud", default='data/raw/examples/Obama_5s.wav', type=str) # data/raw/examples/Obama_5s.wav
-    parser.add_argument("--drv_pose", default='static', type=str) # data/raw/examples/May_5s.mp4
+    parser.add_argument("--drv_pose", default='data/raw/examples/May_5s.mp4', type=str) # data/raw/examples/May_5s.mp4
     parser.add_argument("--blink_mode", default='none', type=str) # none | period
     parser.add_argument("--temperature", default=0.2, type=float) # sampling temperature in audio2motion, higher -> more diverse, less accurate
     parser.add_argument("--mouth_amp", default=0.45, type=float) # scale of predicted mouth, enabled in audio-driven
@@ -570,7 +573,7 @@ if __name__ == '__main__':
     parser.add_argument("--out_mode", default='concat_debug') # final: only output talking head video; concat_debug: talking head with internel features  
     parser.add_argument("--map_to_init_pose", default='True') # whether to map the pose of first frame to source image
     parser.add_argument("--seed", default=None, type=int) # random seed, default None to use time.time()
-    parser.add_argument("--min_face_area_percent", default=0.2, type=float) # scale of predicted mouth, enabled in audio-driven
+    parser.add_argument("--min_face_area_percent", default=0.4, type=float) # scale of predicted mouth, enabled in audio-driven
 
     args = parser.parse_args()
 
@@ -590,6 +593,7 @@ if __name__ == '__main__':
             'map_to_init_pose': args.map_to_init_pose,
             'head_torso_threshold': args.head_torso_threshold,
             'seed': args.seed,
+            'min_face_area_percent': args.min_face_area_percent,
             }
 
     GeneFace2Infer.example_run(inp)

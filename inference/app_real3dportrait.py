@@ -164,7 +164,7 @@ def real3dportrait_demo(
                         with gr.Column(variant='panel'):
 
                             blink_mode = gr.Radio(['none', 'period'], value='period', label='blink mode', info="whether to blink periodly") #        
-                            min_face_area_percent = gr.Slider(minimum=0.15, maximum=1.0, step=0.01, label="min_face_area_percent",  value=0.2, info='The minimum face area percent in the output frame, to prevent bad cases caused by a too small face.',)
+                            min_face_area_percent = gr.Slider(minimum=0.15, maximum=0.5, step=0.01, label="min_face_area_percent",  value=0.2, info='The minimum face area percent in the output frame, to prevent bad cases caused by a too small face.',)
                             temperature = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="temperature",  value=0.2, info='audio to secc temperature',)
                             mouth_amp = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="mouth amplitude",  value=0.45, info='higher -> mouth will open wider, default to be 0.4',)
                             out_mode = gr.Radio(['final', 'concat_debug'], value='concat_debug', label='output layout', info="final: only final output ; concat_debug: final output concated with internel features") 

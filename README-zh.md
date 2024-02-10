@@ -10,6 +10,10 @@
     <br>
 </p>
 
+## 您可能同样感兴趣
+- 我们发布了GeneFace++([https://github.com/yerfor/GeneFacePlusPlus](https://github.com/yerfor/GeneFacePlusPlus)), 一个专注于提升单个特定说话人效果的说话人合成系统，它实现了高嘴形对齐、高视频质量和高系统效率。
+
+
 # 快速上手！
 ## 安装环境
 请参照[环境配置文档](docs/prepare_env/install_guide-zh.md)，配置Conda环境`real3dportrait`

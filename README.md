@@ -10,6 +10,8 @@ This is the official repo of Real3D-Portrait with Pytorch implementation, for on
     <br>
 </p>
 
+## You may also interested in 
+- We release the code of GeneFace++, ([https://github.com/yerfor/GeneFacePlusPlus](https://github.com/yerfor/GeneFacePlusPlus)), a NeRF-based person-specific talking face system, which aims at producing high-quality talking face videos with extreme idenetity-similarity of the target person.
 
 # Quick Start!
 ## Environment Installation
