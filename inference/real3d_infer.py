@@ -573,7 +573,7 @@ if __name__ == '__main__':
     parser.add_argument("--out_mode", default='concat_debug') # final: only output talking head video; concat_debug: talking head with internel features  
     parser.add_argument("--map_to_init_pose", default='True') # whether to map the pose of first frame to source image
     parser.add_argument("--seed", default=None, type=int) # random seed, default None to use time.time()
-    parser.add_argument("--min_face_area_percent", default=0.4, type=float) # scale of predicted mouth, enabled in audio-driven
+    parser.add_argument("--min_face_area_percent", default=0.2, type=float) # scale of predicted mouth, enabled in audio-driven
 
     args = parser.parse_args()
 
