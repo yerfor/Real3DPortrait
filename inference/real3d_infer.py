@@ -565,10 +565,10 @@ if __name__ == '__main__':
     parser.add_argument("--bg_img", default='', type=str) # data/raw/examples/bg.png
     parser.add_argument("--drv_aud", default='data/raw/examples/Obama_5s.wav', type=str) # data/raw/examples/Obama_5s.wav
     parser.add_argument("--drv_pose", default='data/raw/examples/May_5s.mp4', type=str) # data/raw/examples/May_5s.mp4
-    parser.add_argument("--blink_mode", default='none', type=str) # none | period
+    parser.add_argument("--blink_mode", default='period', type=str) # none | period
     parser.add_argument("--temperature", default=0.2, type=float) # sampling temperature in audio2motion, higher -> more diverse, less accurate
     parser.add_argument("--mouth_amp", default=0.45, type=float) # scale of predicted mouth, enabled in audio-driven
-    parser.add_argument("--head_torso_threshold", default=0.9, type=float, help="0.1~1.0, turn up this value if the hair is translucent")
+    parser.add_argument("--head_torso_threshold", default=None, type=float, help="0.1~1.0, turn up this value if the hair is translucent")
     parser.add_argument("--out_name", default='') # output filename
     parser.add_argument("--out_mode", default='concat_debug') # final: only output talking head video; concat_debug: talking head with internel features  
     parser.add_argument("--map_to_init_pose", default='True') # whether to map the pose of first frame to source image
