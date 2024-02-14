@@ -23,6 +23,12 @@ conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=
 # 从源代码安装，需要比较长的时间 (如果遇到各种time-out问题，建议使用代理)
 pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 
+# 利用conda安装pytorch (For fast installation, Linux only)
+conda install pytorch3d::pytorch3d
+## 如果conda安装失败,一个兼容性的选择是从Github拉取源码并本地编译
+## 这可能会花费较长时间（可能数十分钟左右）；由于要连接Github，可能经常面临time-out问题，请考虑使用代理。
+pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
+
 # MMCV安装
 pip install cython
 pip install openmim==0.3.9
