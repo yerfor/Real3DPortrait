@@ -20,7 +20,10 @@ conda install conda-forge::ffmpeg # ffmpeg with libx264 codec to turn images to 
 ### We recommend torch2.0.1+cuda11.7. 
 conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
 
-# Build from source, it may take a long time (Proxy is recommended if encountering the time-out problem)
+# Install from pytorch3d from conda
+conda install pytorch3d::pytorch3d
+
+# Alternatively, build from source, it may take a long time (Proxy is recommended if encountering the time-out problem)
 pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 
 # MMCV for some network structure
