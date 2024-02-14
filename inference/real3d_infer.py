@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append('./')
 import torch
 import torch.nn.functional as F
 import torchshow as ts
