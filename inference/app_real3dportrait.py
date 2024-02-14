@@ -18,6 +18,7 @@ class Inferer(GeneFace2Infer):
             'mouth_amp',
             'out_mode',
             'map_to_init_pose',
+            'low_memory_usage',
             'hold_eye_opened',
             'a2m_ckpt',
             'head_ckpt',
@@ -169,6 +170,7 @@ def real3dportrait_demo(
                             temperature = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="temperature",  value=0.2, info='audio to secc temperature',)
                             mouth_amp = gr.Slider(minimum=0.0, maximum=1.0, step=0.025, label="mouth amplitude",  value=0.45, info='higher -> mouth will open wider, default to be 0.4',)
                             out_mode = gr.Radio(['final', 'concat_debug'], value='concat_debug', label='output layout', info="final: only final output ; concat_debug: final output concated with internel features") 
+                            low_memory_usage = gr.Checkbox(label="Low Memory Usage Mode: save memory at the expense of lower inference speed. Useful when running a low audio (minutes-long).", value=False)
                             map_to_init_pose = gr.Checkbox(label="Whether to map pose of first frame to initial pose", value=True)
                             hold_eye_opened  = gr.Checkbox(label="Whether to maintain eyes always open")
                                 
@@ -205,6 +207,7 @@ def real3dportrait_demo(
                         mouth_amp,
                         out_mode,
                         map_to_init_pose,
+                        low_memory_usage,
                         hold_eye_opened,
                         audio2secc_dir,
                         head_model_dir,

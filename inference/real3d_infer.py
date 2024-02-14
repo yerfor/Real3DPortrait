@@ -452,58 +452,80 @@ class GeneFace2Infer:
         drv_kps = smooth_features_xd(drv_kps.reshape([-1, 68*2]), kernel_size=torso_smo_ksize).reshape([-1, 68, 2])
 
         # forward renderer
-        img_raw_lst = []
-        img_lst = []
-        depth_img_lst = []
-        with torch.no_grad():
-            for i in tqdm.trange(num_frames, desc="Real3D-Portrait is rendering frames"):
-                kp_src = torch.cat([src_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(src_kps.device)],dim=-1)
-                kp_drv = torch.cat([drv_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(drv_kps.device)],dim=-1)
-                cond={'cond_cano': cano_secc_color,'cond_src': src_secc_color, 'cond_tgt': drv_secc_colors[i:i+1].cuda(),
-                        'ref_torso_img': ref_torso_img, 'bg_img': bg_img, 'segmap': segmap,
-                        'kp_s': kp_src, 'kp_d': kp_drv}
-                if i == 0:
-                    gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=True, use_cached_backbone=False)
-                else:
-                    gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=False, use_cached_backbone=True)
-                img_lst.append(gen_output['image'])
-                img_raw_lst.append(gen_output['image_raw'])
-                depth_img_lst.append(gen_output['image_depth'])
+        if inp['low_memory_usage']:
+            # save memory, when one image is rendered, write it into video
+            import imageio
+            debug_name = 'demo.mp4'
+            writer = imageio.get_writer(debug_name, fps=25, format='FFMPEG', codec='h264')
+            
+            with torch.no_grad():
+                for i in tqdm.trange(num_frames, desc="Real3D-Portrait is rendering frames"):
+                    kp_src = torch.cat([src_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(src_kps.device)],dim=-1)
+                    kp_drv = torch.cat([drv_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(drv_kps.device)],dim=-1)
+                    cond={'cond_cano': cano_secc_color,'cond_src': src_secc_color, 'cond_tgt': drv_secc_colors[i:i+1].cuda(),
+                            'ref_torso_img': ref_torso_img, 'bg_img': bg_img, 'segmap': segmap,
+                            'kp_s': kp_src, 'kp_d': kp_drv}
+                    if i == 0:
+                        gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=True, use_cached_backbone=False)
+                    else:
+                        gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=False, use_cached_backbone=True)
+                    img = ((gen_output['image']+1)/2 * 255.).permute(0, 2, 3, 1)[0].int().cpu().numpy().astype(np.uint8)
+                    writer.append_data(img)
+            writer.close()
+        else:
+            img_raw_lst = []
+            img_lst = []
+            depth_img_lst = []
+            with torch.no_grad():
+                for i in tqdm.trange(num_frames, desc="Real3D-Portrait is rendering frames"):
+                    kp_src = torch.cat([src_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(src_kps.device)],dim=-1)
+                    kp_drv = torch.cat([drv_kps[i:i+1].reshape([1, 68, 2]), torch.zeros([1, 68,1]).to(drv_kps.device)],dim=-1)
+                    cond={'cond_cano': cano_secc_color,'cond_src': src_secc_color, 'cond_tgt': drv_secc_colors[i:i+1].cuda(),
+                            'ref_torso_img': ref_torso_img, 'bg_img': bg_img, 'segmap': segmap,
+                            'kp_s': kp_src, 'kp_d': kp_drv}
+                    if i == 0:
+                        gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=True, use_cached_backbone=False)
+                    else:
+                        gen_output = self.secc2video_model.forward(img=ref_img_head, camera=camera[i:i+1], cond=cond, ret={}, cache_backbone=False, use_cached_backbone=True)
+                    img_lst.append(gen_output['image'])
+                    img_raw_lst.append(gen_output['image_raw'])
+                    depth_img_lst.append(gen_output['image_depth'])
 
-        # save demo video
-        depth_imgs = torch.cat(depth_img_lst)
-        imgs = torch.cat(img_lst)
-        imgs_raw = torch.cat(img_raw_lst)
-        secc_img = torch.cat([torch.nn.functional.interpolate(drv_secc_colors[i:i+1], (512,512)) for i in range(num_frames)])
+            # save demo video
+            depth_imgs = torch.cat(depth_img_lst)
+            imgs = torch.cat(img_lst)
+            imgs_raw = torch.cat(img_raw_lst)
+            secc_img = torch.cat([torch.nn.functional.interpolate(drv_secc_colors[i:i+1], (512,512)) for i in range(num_frames)])
+            
+            if inp['out_mode'] == 'concat_debug':
+                secc_img = secc_img.cpu()
+                secc_img = ((secc_img + 1) * 127.5).permute(0, 2, 3, 1).int().numpy()
+
+                depth_img = F.interpolate(depth_imgs, (512,512)).cpu()
+                depth_img = depth_img.repeat([1,3,1,1])
+                depth_img = (depth_img - depth_img.min()) / (depth_img.max() - depth_img.min())
+                depth_img = depth_img * 2 - 1
+                depth_img = depth_img.clamp(-1,1)
+
+                secc_img = secc_img / 127.5 - 1
+                secc_img = torch.from_numpy(secc_img).permute(0, 3, 1, 2)
+                imgs = torch.cat([ref_img_gt.repeat([imgs.shape[0],1,1,1]).cpu(), secc_img, F.interpolate(imgs_raw, (512,512)).cpu(), depth_img, imgs.cpu()], dim=-1)
+            elif inp['out_mode'] == 'final':
+                imgs = imgs.cpu()
+            elif inp['out_mode'] == 'debug':
+                raise NotImplementedError("to do: save separate videos")
+            imgs = imgs.clamp(-1,1)
+
+            import imageio
+            debug_name = 'demo.mp4'
+            out_imgs = ((imgs.permute(0, 2, 3, 1) + 1)/2 * 255).int().cpu().numpy().astype(np.uint8)
+            writer = imageio.get_writer(debug_name, fps=25, format='FFMPEG', codec='h264')
+            
+            for i in tqdm.trange(len(out_imgs), desc="Imageio is saving video"):
+                writer.append_data(out_imgs[i])
+            writer.close()
         
-        if inp['out_mode'] == 'concat_debug':
-            secc_img = secc_img.cpu()
-            secc_img = ((secc_img + 1) * 127.5).permute(0, 2, 3, 1).int().numpy()
-
-            depth_img = F.interpolate(depth_imgs, (512,512)).cpu()
-            depth_img = depth_img.repeat([1,3,1,1])
-            depth_img = (depth_img - depth_img.min()) / (depth_img.max() - depth_img.min())
-            depth_img = depth_img * 2 - 1
-            depth_img = depth_img.clamp(-1,1)
-
-            secc_img = secc_img / 127.5 - 1
-            secc_img = torch.from_numpy(secc_img).permute(0, 3, 1, 2)
-            imgs = torch.cat([ref_img_gt.repeat([imgs.shape[0],1,1,1]).cpu(), secc_img, F.interpolate(imgs_raw, (512,512)).cpu(), depth_img, imgs.cpu()], dim=-1)
-        elif inp['out_mode'] == 'final':
-            imgs = imgs.cpu()
-        elif inp['out_mode'] == 'debug':
-            raise NotImplementedError("to do: save separate videos")
-        imgs = imgs.clamp(-1,1)
-
-        import imageio
-        debug_name = 'demo.mp4'
-        out_imgs = ((imgs.permute(0, 2, 3, 1) + 1)/2 * 255).int().cpu().numpy().astype(np.uint8)
-        writer = imageio.get_writer(debug_name, fps=25, format='FFMPEG', codec='h264')
-        
-        for i in tqdm.trange(len(out_imgs), desc="Imageio is saving video"):
-            writer.append_data(out_imgs[i])
-        writer.close()
-        
+        # add audio track
         out_fname = 'infer_out/tmp/' + os.path.basename(inp['src_image_name'])[:-4] + '_' + os.path.basename(inp['drv_pose_name'])[:-4] + '.mp4' if inp['out_name'] == '' else inp['out_name']
         try:
             os.makedirs(os.path.dirname(out_fname), exist_ok=True)
@@ -576,6 +598,7 @@ if __name__ == '__main__':
     parser.add_argument("--map_to_init_pose", default='True') # whether to map the pose of first frame to source image
     parser.add_argument("--seed", default=None, type=int) # random seed, default None to use time.time()
     parser.add_argument("--min_face_area_percent", default=0.2, type=float) # scale of predicted mouth, enabled in audio-driven
+    parser.add_argument("--low_memory_usage", action='store_true', help='write img to video upon generated, leads to slower fps, but use less memory')
 
     args = parser.parse_args()
 
@@ -596,6 +619,7 @@ if __name__ == '__main__':
             'head_torso_threshold': args.head_torso_threshold,
             'seed': args.seed,
             'min_face_area_percent': args.min_face_area_percent,
+            'low_memory_usage': args.low_memory_usage,
             }
 
     GeneFace2Infer.example_run(inp)
