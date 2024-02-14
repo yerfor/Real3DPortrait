@@ -69,7 +69,7 @@ Firstly, switch to project folder and activate conda environment:
 ```bash
 cd <Real3DPortraitRoot>
 conda activate real3dportrait
-export PYTHON_PATH=./
+export PYTHONPATH=./
 ```
 For audio-driven, provide source image and driving audio:
 ```bash
