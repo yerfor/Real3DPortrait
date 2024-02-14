@@ -1,4 +1,5 @@
 import os, sys
+sys.path.append('./')
 import argparse
 import gradio as gr
 from inference.real3d_infer import GeneFace2Infer
