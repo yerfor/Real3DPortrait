@@ -232,6 +232,8 @@ if __name__ == "__main__":
     parser.add_argument("--head_ckpt", type=str, default='')
     parser.add_argument("--torso_ckpt", type=str, default='checkpoints/240210_real3dportrait_orig/secc2plane_torso_orig/model_ckpt_steps_100000.ckpt') 
     parser.add_argument("--port", type=int, default=None) 
+    parser.add_argument("--server", type=str, default='127.0.0.1')
+
     args = parser.parse_args()
     demo = real3dportrait_demo(
         audio2secc_dir=args.a2m_ckpt,
@@ -241,5 +243,4 @@ if __name__ == "__main__":
         warpfn=None,
     )
     demo.queue()
-    demo.launch(server_port=args.port)
-
+    demo.launch(server_name=args.server, server_port=args.port)

@@ -34,4 +34,11 @@ mim install mmcv==2.1.0 # use mim to speed up installation for mmcv
 # other dependencies
 pip install -r docs/prepare_env/requirements.txt -v
 
+If you encounter the following error, please try to install the dependencies with the following command:
+pip install -r docs/prepare_env/requirements.txt -v --use-deprecated=legacy-resolver
+
+> ERROR: pip's dependency resolver does not currently take into account all the packages
+> that are installed. This behaviour is the source of the following dependency conflicts.
+> openxlab 0.0.34 requires setuptools~=60.2.0, but you have setuptools 69.1.1 which is incompatible.
+
 ```
