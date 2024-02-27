@@ -53,7 +53,7 @@ checkpoints/
 ```
 
 ## Inference
-Currently, we provide **CLI** and **Gradio WebUI** for inference, and Google Colab will be provided in the future. We support both Audio-Driven and Video-Driven methods:
+Currently, we provide **CLI**, **Gradio WebUI** and **Google Colab** for inference. We support both Audio-Driven and Video-Driven methods:
 
 - For audio-driven, at least prepare `source image` and `driving audio`
 - For video-driven, at least prepare `source image` and `driving expression video`
@@ -63,6 +63,9 @@ Run Gradio WebUI demo, upload resouces in webpage，click `Generate` button to i
 ```bash
 python inference/app_real3dportrait.py
 ```
+
+### Google Colab
+Run all the cells in this [Colab](https://colab.research.google.com/github/yerfor/Real3DPortrait/blob/main/inference/real3dportrait_demo.ipynb).
 
 ### CLI Inference
 Firstly, switch to project folder and activate conda environment:
@@ -113,7 +116,7 @@ python inference/real3d_infer.py \
 - [x] **Release Pre-trained weights of Real3D-Portrait.**
 - [x] **Release Inference Code of Real3D-Portrait.**
 - [x] **Release Gradio Demo of Real3D-Portrait..**
-- [ ] **Release Google Colab of Real3D-Portrait..**
+- [x] **Release Google Colab of Real3D-Portrait..**
 - [ ] **Release Training Code of Real3D-Portrait.**
 
 # Citation
