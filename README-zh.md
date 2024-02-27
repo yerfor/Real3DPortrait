@@ -117,7 +117,7 @@ python inference/real3d_infer.py \
 - [x] **Release Pre-trained weights of Real3D-Portrait.**
 - [x] **Release Inference Code of Real3D-Portrait.**
 - [x] **Release Gradio Demo of Real3D-Portrait..**
-- [ ] **Release Google Colab of Real3D-Portrait..**
+- [x] **Release Google Colab of Real3D-Portrait..**
 - [ ] **Release Training Code of Real3D-Portrait.**
 
 # 引用我们
