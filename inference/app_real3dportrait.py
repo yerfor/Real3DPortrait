@@ -233,6 +233,7 @@ if __name__ == "__main__":
     parser.add_argument("--torso_ckpt", type=str, default='checkpoints/240210_real3dportrait_orig/secc2plane_torso_orig/model_ckpt_steps_100000.ckpt') 
     parser.add_argument("--port", type=int, default=None) 
     parser.add_argument("--server", type=str, default='127.0.0.1')
+    parser.add_argument("--share", action='store_true', dest='share', help='share srever to Internet')
 
     args = parser.parse_args()
     demo = real3dportrait_demo(
@@ -243,4 +244,4 @@ if __name__ == "__main__":
         warpfn=None,
     )
     demo.queue()
-    demo.launch(server_name=args.server, server_port=args.port)
+    demo.launch(share=args.share, server_name=args.server, server_port=args.port)
