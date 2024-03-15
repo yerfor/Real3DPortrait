@@ -54,7 +54,7 @@ checkpoints/
 ```
 
 ## 推理测试
-我们目前提供了**命令行（CLI）**与**Gradio WebUI**推理方式，并将在未来提供Google Colab方式。我们同时支持音频驱动（Audio-Driven）与视频驱动（Video-Driven）：
+我们目前提供了**命令行（CLI）**, **Gradio WebUI**与**Google Colab**推理方式。我们同时支持音频驱动（Audio-Driven）与视频驱动（Video-Driven）：
 
 - 音频驱动场景下，需要至少提供`source image`与`driving audio`
 - 视频驱动场景下，需要至少提供`source image`与`driving expression video`
@@ -64,6 +64,9 @@ checkpoints/
 ```bash
 python inference/app_real3dportrait.py
 ```
+
+### Google Colab推理
+运行这个[Colab](https://colab.research.google.com/github/yerfor/Real3DPortrait/blob/main/inference/real3dportrait_demo.ipynb)中的所有cell。
 
 ### 命令行推理
 首先，切换至项目根目录并启用Conda环境：
@@ -114,7 +117,7 @@ python inference/real3d_infer.py \
 - [x] **Release Pre-trained weights of Real3D-Portrait.**
 - [x] **Release Inference Code of Real3D-Portrait.**
 - [x] **Release Gradio Demo of Real3D-Portrait..**
-- [ ] **Release Google Colab of Real3D-Portrait..**
+- [x] **Release Google Colab of Real3D-Portrait..**
 - [ ] **Release Training Code of Real3D-Portrait.**
 
 # 引用我们
