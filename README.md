@@ -31,7 +31,6 @@ deep_3drecon/BFM/
 ├── Exp_Pca.bin
 ├── facemodel_info.mat
 ├── index_mp468_from_mesh35709.npy
-├── mediapipe_in_bfm53201.npy
 └── std_exp.txt
 ```
 
