@@ -1,0 +1,73 @@
+base_config: egs/egs_bases/eg3d/base.yaml
+ds_name: TH1KH_512
+binary_data_dir: data/binary/th1kh
+process_id: 0 # rank id when pre-processing dataset
+total_process: 1 # number of ranks when pre-processing dataset
+split_seed: 999 # random seed that split chunks during pre-processing dataset
+seed: 999
+batch_size: 4
+num_workers: 4
+use_kv_dataset: true
+ones_ws_for_sr: true
+
+# ray_near: 2.2
+# ray_far: 4.0
+ray_near: auto
+ray_far: auto
+
+batch_size: 4 # use smaller bs from 4 when using multiple machines to speed up training
+
+lr_g: 0.0001 # follow the setting of < Real-Time Radiance Fields for Single-Image Portrait View Synthesis >
+# lr_g: 0.0004 # larger lr leads to degradation, even using 32 gpus.
+lr_d: 0.0002 # follow the setting of EG3D
+
+warmup_updates: 4000
+
+flipped_to_world_coord: true
+random_sample_pose: true
+mimic_plane: false # minimize the error with EG3D plane
+
+pretrained_eg3d_ckpt: /mnt/bn/sa-ag-data/yezhenhui/projects/GeneFace_private/checkpoints/geneface2_ckpts/eg3d_baseline_run2/model_ckpt_steps_100000.ckpt
+seg_out_mode: none
+img2plane_backbone_mode: vit
+num_ckpt_keep: 1
+
+not_save_modules: ['criterion_lpips', 'eg3d_model']
+task_cls: tasks.os_avatar.img2plane_task.OSAvatarImg2PlaneTask
+
+batch_size: 1
+normalize_radius: false
+
+optimizer_adam_beta1_g: 0.
+optimizer_adam_beta2_g: 0.99
+optimizer_adam_beta1_d: 0.
+optimizer_adam_beta2_d: 0.99
+
+lambda_mse_depth: 0.
+
+start_adv_iters: 30000
+lr_g: 0.0001
+lr_d: 0.0002
+
+img2plane_backbone_mode: composite # composite | segformer
+
+ffhq_disc_inp_mode: eg3d_gen
+use_th1kh_disc: false # enable only when ds_name == FFHQ_and_TH1KH_512
+lpips_mode: vgg19_v2 # vgg19 | vgg16 | alex | vgg19_v2
+
+enable_rescale_plane_regulation: true
+img2plane_backbone_scale: standard # standard | large
+update_on_th1kh_samples: false
+
+init_from_ckpt: ''
+
+img2plane_input_mode: rgb # rgb_alpha | rgb_camera | rgb_alpha_camera
+triplane_feature_type: trigrid_v2 # triplane # trigrid
+triplane_depth: 3 # 1
+triplane_hid_dim: 32 # 32
+clip_grad_norm: 1.0
+neural_rendering_resolution: 128 # will be upscale 4x by SR 
+
+use_th1kh_mv_adv: false
+torch_compile: true
+use_mse: false

@@ -1,0 +1,8 @@
+base_config:
+  - ../os_avatar/secc_img2plane_torso.yaml
+  - ./base.yaml
+
+
+init_from_ckpt: /mnt/bn/sa-ag-data/yezhenhui/projects/GeneFace_private/checkpoints/0729_th1kh/secc_img2plane
+lr_g: 0.00001 # 1e-5
+lr_d: 0.0002 # 2e-4

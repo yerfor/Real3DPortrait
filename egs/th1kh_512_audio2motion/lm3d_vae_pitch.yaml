@@ -1,0 +1,10 @@
+base_config:
+  - egs/egs_bases/audio2motion/vae.yaml
+  - ./base.yaml
+
+lambda_kl: 0.02
+motion_type: idexp_lm3d
+audio_type: hubert
+
+task_cls: tasks.audio2motion.lm3d_vae_sync_pitch.VAESyncAudio2MotionTask
+max_updates: 160000

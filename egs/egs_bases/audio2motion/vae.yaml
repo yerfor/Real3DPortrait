@@ -1,0 +1,7 @@
+base_config:
+  - ./base.yaml
+
+# VAE related
+task_cls: tasks.audio2motion.lm3d_vae.VAEAudio2MotionTask
+lambda_kl: 0.5
+

@@ -15,7 +15,6 @@ cd <Real3DPortraitRoot>
 source <CondaRoot>/bin/activate
 conda create -n real3dportrait python=3.9
 conda activate real3dportrait
-conda install conda-forge::ffmpeg # ffmpeg with libx264 codec to turn images to video
 
 # 我们推荐安装torch2.0.1+cuda11.7. 
 conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia

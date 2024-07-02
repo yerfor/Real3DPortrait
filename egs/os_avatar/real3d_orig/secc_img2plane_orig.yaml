@@ -1,0 +1,56 @@
+base_config:
+  - ./img2plane_orig.yaml
+
+task_cls: tasks.os_avatar.secc_img2plane_task.SECC_Img2PlaneEG3DTask
+# ds_name: Concat_VFHQ_CelebVHQ_TH1KH_RAVDESS # CelebV_HQ | Concat_CelebVHQ_TH1KH | Concat_CelebVHQ_TH1KH_RAVDESS
+ds_name: FULL_Concat_VFHQ_CelebVHQ_TH1KH_RAVDESS
+binary_data_dir: data/binary/CelebV-HQ
+
+img2plane_backbone_mode: composite # composite | segformer
+num_workers: 8 # 4
+pncc_cond_mode: cano_src_tgt # cano_tgt | cano_src_tgt
+seg_out_mode: head
+
+# 目前发现adv之后控制不了嘴了，见checkpoints/0702_img2planes/osavatar_secc_img2plane_baseline_vit_from_pretrained
+start_adv_iters: 25_0000 # 如果是从img2plane过来的，25w；如果是从secc2plane过来了，见机行事，5w～10w左右也行。
+max_updates: 25_0000 # 25_0000
+lambda_th1kh_mv_adv: 0.002 # 0.005 # 0.01
+add_ffhq_singe_disc: false
+lambda_ffhq_mv_adv: 0.002 # enable when add_ffhq_singe_disc is True
+lr_mul_cano_img2plane: 1.0 # 1.0 | 0. | 0.1
+lambda_mse: 1.0
+lr_decay_rate: 0.95
+lr_decay_interval: 5000
+
+secc_segformer_scale: b0 # b0-b5
+use_motion_smo_net: false
+motion_smo_win_size: 5
+
+# regularization on Spatial plane
+density_reg_p_dist: 0.004 # distance at which to sample perturbed points for density regularization
+
+# regularization on SECC plane
+reg_interval_g: 4
+enable_rescale_plane_regulation: false # 试了下rescale发现效果不大
+min_rescale_factor: 0.25
+# how we fuse the secc
+phase1_plane_fusion_mode: add # add | mul
+init_from_ckpt: checkpoints/240126_real3dportrait_orig/img2plane_orig
+
+disable_highreso_at_stage1: true
+secc_pertube_mode: randn # randn | tv | laplacian | none
+secc_pertube_randn_scale: 0.01 # enable when pertube_mode==randn
+# target_pertube_blink_secc_loss: 0.05 # task会自动tune对应的lambda以使pertube loss逼近这个目标
+target_pertube_blink_secc_loss: 0.15 # task会自动tune对应的lambda以使pertube loss逼近这个目标
+target_pertube_secc_loss: 0.5 # 0.3 # task会自动tune对应的lambda以使pertube loss逼近这个目标
+lr_lambda_pertube_secc: 0.01 # 自动tune lambda的学习率
+
+sr_type: vanilla # vanillda | spade
+two_stage_training: true # is yes, when adv starts, fix the nerf and only finetune the sr. We found it necessary, otherwise the i2p could produce bad cases (such as darken face)
+also_update_decoder: false # update decoder at stage 2
+lambda_weights_l1: 0.1 # 0.5
+lambda_weights_entropy: 0.01 # 0.05
+lambda_density_reg: 0.25 # default 0.25 in EG3D, strength of pertube density regularization for Generator
+reg_interval_g_cond: 4
+ckpt_milestone_interval: 50000
+update_src2src_interval: 16

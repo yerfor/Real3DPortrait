@@ -1,0 +1,14 @@
+base_config:
+  - ./lm3d_vae_sync.yaml
+  - ./base.yaml
+
+lambda_kl: 0.02
+syncnet_work_dir: checkpoints/th1kh/lm3d_syncnet
+syncnet_ckpt_steps: 230000
+task_cls: tasks.audio2motion.lm3d_vae_sync_pitch.VAESyncAudio2MotionTask
+max_updates: 160000
+motion_type: idexp_lm3d
+audio_type: hubert
+
+syncnet_num_layers_per_block: 3
+syncnet_base_hid_size: 128

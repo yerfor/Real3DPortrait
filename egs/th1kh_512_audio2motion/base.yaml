@@ -1,0 +1,20 @@
+ds_name: TH1KH_512
+raw_data_dir: /mnt/bn/sa-ag-data/yezhenhui/datasets/raw/TH1KH_512
+binary_data_dir: data/binary/TH1KH_512_audio2motion
+# binary_data_dir: /dev/shm/TH1KH_512
+process_id: 0 # rank id when pre-processing dataset
+total_process: 1 # number of ranks when pre-processing dataset
+split_seed: 999 # random seed that split chunks during pre-processing dataset
+
+smo_win_size: 5
+batch_size: 4
+num_workers: 4
+
+use_kv_dataset: true
+
+binarization_args:
+  with_hubert: true
+  with_mel: true
+  with_coeff: true
+  
+sample_min_length: 0

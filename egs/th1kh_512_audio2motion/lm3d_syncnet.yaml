@@ -1,0 +1,17 @@
+base_config:
+  - egs/egs_bases/syncnet/base.yaml
+  - ./base.yaml
+
+max_updates: 250000
+motion_type: idexp_lm3d
+audio_type: hubert
+
+syncnet_num_layers_per_block: 3
+syncnet_base_hid_size: 128
+
+# max_sentences_per_batch: 1024
+max_sentences_per_batch: 2048
+max_tokens_per_batch: 40_000
+# max_tokens_per_batch: 20_000
+
+num_workers: 16

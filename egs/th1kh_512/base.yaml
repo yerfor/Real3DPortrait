@@ -1,0 +1,21 @@
+ds_name: TH1KH_512
+raw_data_dir: /mnt/bn/sa-ag-data/yezhenhui/datasets/raw/TH1KH_512
+binary_data_dir: data/binary/TH1KH_512
+# binary_data_dir: /dev/shm/TH1KH
+process_id: 0 # rank id when pre-processing dataset
+total_process: 1 # number of ranks when pre-processing dataset
+split_seed: 999 # random seed that split chunks during pre-processing dataset
+
+max_sentences_per_batch: 1024
+max_tokens_per_batch: 200000
+
+load_db_to_memory: false
+
+num_workers: 4
+use_kv_dataset: true
+
+binarization_args:
+  with_hubert: false
+  with_mel: false
+  with_coeff: true
+

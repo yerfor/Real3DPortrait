@@ -1,0 +1,31 @@
+base_config:
+  - ./secc_img2plane.yaml
+
+task_cls: tasks.os_avatar.secc_img2plane_torso_task.SECC_Img2PlaneEG3D_TorsoTask
+torso_ref_segout_mode: torso # torso | torso_with_bg | person | full (person_with_bg)
+
+lr_g: 0.00001
+
+weight_fuse: true
+
+start_adv_iters: 40000
+max_updates: 10_0000 # 25_0000
+lambda_th1kh_mv_adv: 0.001
+add_ffhq_singe_disc: false
+lambda_ffhq_mv_adv: 0.002 # enable when add_ffhq_singe_disc is True
+lambda_mse: 1.0
+init_from_ckpt: '' # checkpoints/0725_img2planes/secc_img2plane_torso | can be either a secc_img2plane or a secc_img2plane_torso ckpt
+reload_head_ckpt: '' # checkpoints/0804_secc2plane/secc_img2plane_lap0.1_blink0.05_run2 | will override the secc_img2plane from init_from_ckpt and be reloaded during training
+
+
+fuse_with_deform_source: false # fuse source会有严重的artifact
+lam_occlusion_2_reg_l1: 0.0 # 0.001
+torso_occlusion_reg_unmask_factor: 0.3
+lam_occlusion_weights_entropy: 0.001 # 0.0001
+
+lam_occlusion_reg_l1: 0.00 # 设置成0.02导致脸部和torso都有色差，并且摇头晃脑时只有脖子动，身体不太动，不真实。
+occlusion_fuse: true
+torso_kp_num: 4
+htbsr_head_weight_fuse_mode: v2
+htbsr_head_threshold: 0.9
+torso_model_version: v2

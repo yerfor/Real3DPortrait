@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from scipy.io import loadmat
+from deep_3drecon.util.load_mats import transferBFM09
 import os
 # from utils.commons.tensor_utils import convert_like
 
@@ -38,6 +39,8 @@ class ParametricFaceModel:
                 default_name='BFM_model_front.mat',
                 keypoint_mode='mediapipe'):
         
+        if not os.path.isfile(os.path.join(bfm_folder, default_name)):
+            transferBFM09(bfm_folder)
         model = loadmat(os.path.join(bfm_folder, default_name))
         # mean face shape. [3*N,1]
         self.mean_shape = model['meanshape'].astype(np.float32)

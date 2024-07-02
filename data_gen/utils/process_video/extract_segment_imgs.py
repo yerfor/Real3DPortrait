@@ -412,8 +412,8 @@ def get_todo_vid_names(vid_names, background_method='knn'):
 if __name__ == '__main__':
     import argparse, glob, tqdm, random
     parser = argparse.ArgumentParser()
-    parser.add_argument("--vid_dir", default='data/raw/videos/May.mp4')
-    parser.add_argument("--ds_name", default='nerf')
+    parser.add_argument("--vid_dir", default='/home/tiger/datasets/raw/TH1KH_512/video')
+    parser.add_argument("--ds_name", default='TH1KH_512')
     parser.add_argument("--num_workers", default=48, type=int)
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--process_id", default=0, type=int)

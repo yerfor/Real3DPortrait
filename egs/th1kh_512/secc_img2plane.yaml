@@ -1,0 +1,8 @@
+base_config:
+  - ../os_avatar/secc_img2plane.yaml
+  - ./base.yaml
+
+
+init_from_ckpt: /mnt/bn/sa-ag-data/yezhenhui/projects/GeneFace_private/checkpoints/0720_img2planes/secc_img2plane_one_stage
+lr_g: 0.0001 # 1e-4, larger than ravdess, because th1kh_512 is larger
+lr_d: 0.0002 # 2e-4

@@ -1,0 +1,99 @@
+# dataset-related
+raw_data_dir: data/raw/videos
+processed_data_dir: data/processed/videos
+binary_data_dir: data/binary/videos
+video_id: May
+
+# feature-related
+cond_type: idexp_lm3d_normalized
+smo_win_size: 5
+cond_hid_dim: 32
+cond_out_dim: 16
+# generator_condition_on_pose: false # pose is camera extrinsic and intrinsic
+generator_condition_on_pose: true # pose is camera extrinsic and intrinsic
+gpc_reg_prob: 0.5
+gpc_reg_fade_kimg: 1000
+
+# network-related
+task_cls: tasks.eg3ds.eg3d_task.EG3DTask
+z_dim: 512
+w_dim: 512
+neural_rendering_resolution: 128
+final_resolution: 512
+
+base_channel: 32768 # Capacity multiplier
+max_channel: 512 # Max. feature maps
+mapping_network_depth: 2 # num of layers in mapping network
+num_fp16_layers_in_super_resolution: 4
+num_fp16_layers_in_generator: 0
+num_fp16_layers_in_discriminator: 4
+
+
+# GAN-related
+disc_c_noise: 1.0
+blur_raw_target: true
+blur_init_sigma: 10
+# blur_fade_kimg: 200 # Fade out the blur during the first N kimg.
+blur_fade_kimg: 20 # Fade out the blur during the first N kimg.
+# neural rendering-related
+num_samples_coarse: 48 # number of uniform samples to take per ray.
+num_samples_fine: 48 # number of importance samples to take per ray.
+ray_near: 2.25
+# ray_far: 4.05
+ray_far: 3.3
+box_warp: 1 # the side-length of the bounding box spanned by the tri-planes; box_warp=1 means [-0.5, -0.5, -0.5] -> [0.5, 0.5, 0.5].
+
+# loss related
+group_size_for_mini_batch_std: 2 # 4
+lambda_gradient_penalty: 5. # gradient penalty to discriminator
+
+
+lambda_G_supervise_adv: 1.0
+lambda_G_supervise_mse_raw: 1.0
+lambda_G_supervise_mse: 1.0
+lambda_G_adversarial_adv: 1.0
+
+
+lambda_density_reg: 0.25 # strength of density regularization for Generator
+density_reg_p_dist: 0.004 # distance at which to sample perturbed points for density regularization
+
+
+# trainer related
+seed: 9999
+lr_g: 0.0025
+lr_d: 0.002
+optimizer_adam_beta1_g: 0.
+optimizer_adam_beta2_g: 0.99
+optimizer_adam_beta1_d: 0.
+optimizer_adam_beta2_d: 0.99
+reg_interval_g: 4
+reg_interval_d: 16
+
+batch_size: 4
+ema_interval:  400  #  bs * 10 / 32 kimg
+max_updates: 25000_000 # 25000 kimg
+num_workers: 4
+work_dir: ''
+load_ckpt: ''
+tb_log_interval: 100
+num_ckpt_keep: 1000
+val_check_interval: 2000
+valid_infer_interval: 2000
+num_sanity_val_steps: 1
+num_valid_plots: 25
+eval_max_batches: 100 # num_test_plots
+print_nan_grads: false
+resume_from_checkpoint: 0 # specify the step, 0 for latest
+amp: false
+valid_monitor_key: val_loss
+valid_monitor_mode: min
+save_best: true
+debug: false
+save_codes:
+- tasks
+- modules
+- egs
+accumulate_grad_batches: 1
+clip_grad_norm: 0 #1
+clip_grad_value: 0
+

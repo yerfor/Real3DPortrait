@@ -1,0 +1,9 @@
+base_config:
+  - egs/egs_bases/audio2motion/vae.yaml
+  - ./base.yaml
+
+lambda_kl: 0.02
+motion_type: idexp_lm3d
+audio_type: hubert
+
+max_updates: 160000

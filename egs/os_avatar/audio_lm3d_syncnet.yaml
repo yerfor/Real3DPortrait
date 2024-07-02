@@ -1,0 +1,25 @@
+base_config:
+  - egs/egs_bases/syncnet/base.yaml
+
+init_from_ckpt: ''
+binary_data_dir: data/binary/th1kh
+task_cls: tasks.os_avatar.audio_lm3d_syncnet.SyncNetTask
+use_kv_dataset: true
+num_workers: 8 # 4
+
+syncnet_num_clip_pairs: 8192
+max_sentences_per_batch: 1024
+max_tokens_per_batch: 20000
+sample_min_length: 64
+max_updates: 400_0000
+
+syncnet_num_layers_per_block: 3 # 3
+syncnet_base_hid_size: 128
+syncnet_out_hid_size: 1024 # 1024
+syncnet_keypoint_mode: lm468
+
+lr: 0.001
+lr_decay_rate: 0.98
+lr_decay_interval: 5000
+
+audio_type: hubert # hubert | mfcc

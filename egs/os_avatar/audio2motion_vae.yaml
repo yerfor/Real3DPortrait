@@ -1,0 +1,33 @@
+base_config:
+  - egs/egs_bases/audio2motion/vae.yaml
+
+ds_name:  # 会覆盖下面的binary data dir
+binary_data_dir: data/binary/th1kh
+use_kv_dataset: true
+num_workers: 4
+
+task_cls: tasks.os_avatar.audio2motion_task.Audio2MotionTask
+max_updates: 40_0000
+
+motion_type: exp # exp | id_exp if finegrained_id
+sample_min_length: 32
+init_from_ckpt: ''
+
+lambda_mse_lm2d: 0.
+ref_id_mode: 'first_frame' # first_frame | random_frame if finegrained_id
+
+blink_mode: blink_unit # eye_area_percent | blink_unit | none
+use_pitch: true
+use_flow: true
+
+use_eye_amp_embed: false
+use_mouth_amp_embed: true
+lambda_l2_reg_exp: 0.1
+syncnet_ckpt_dir: ''
+audio_type: hubert # hubert | mfcc | mel
+lambda_mse_exp: 0.5
+lambda_mse_lm3d: 0.5
+lambda_lap_exp: 1.0
+lambda_kl: 0.02
+lambda_kl_t1: 2000
+lambda_kl_t2: 2000
