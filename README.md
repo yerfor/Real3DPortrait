@@ -120,7 +120,7 @@ python inference/real3d_infer.py \
 - [x] **Release Inference Code of Real3D-Portrait.**
 - [x] **Release Gradio Demo of Real3D-Portrait..**
 - [x] **Release Google Colab of Real3D-Portrait..**
-- [ ] **Release Training Code of Real3D-Portrait.**
+- [x] **Release Training Code of Real3D-Portrait.**
 
 # Disclaimer
 Any organization or individual is prohibited from using any technology mentioned in this paper to generate someone's talking video without his/her consent, including but not limited to government leaders, political figures, and celebrities. If you do not comply with this item, you could be in violation of copyright laws.
