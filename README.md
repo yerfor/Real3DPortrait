@@ -10,6 +10,9 @@ This is the official repo of Real3D-Portrait with Pytorch implementation, for on
     <br>
 </p>
 
+# 🔥MimicTalk Released
+**We have released the code of MimicTalk ([https://github.com/yerfor/MimicTalk/](https://github.com/yerfor/MimicTalk/)), which is a SOTA NeRF-based person-specific talking face method and achieves better visual quality and enables talking style control.**
+
 ## 🔥 Update
 - \[2024.07.02\] We release the training code of the whole system, including audio-to-motion model, image-to-plane model, secc2plane model, and the secc2plane_torso model, please refer to `docs/train_models`. We also release the code to preprocess and binarize the dataset, please refer to `docs/process_data`. Thanks for your patience!
 
